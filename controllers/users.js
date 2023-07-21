@@ -1,5 +1,7 @@
 const User = require('../models/user');
 
+const ObjectId = mongoose.Types.ObjectId;
+
 const ERROR_CODE_BAD_REQUEST = 400;
 
 const ERROR_CODE_NOT_FOUND = 404;
@@ -21,8 +23,11 @@ const getUsers = (req, res) => {
 const getUserById = (req, res) => {
   const { userId } = req.params;
 
+  if (!ObjectId.isValid(userId)) {
+    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid user ID' });
+  }
+
   User.findById(userId)
-    // eslint-disable-next-line consistent-return
     .then((user) => {
       if (!user) {
         return res.status(ERROR_CODE_NOT_FOUND).send({ message: 'User not found' });
@@ -51,15 +56,18 @@ const updateProfile = (req, res) => {
   const { name, about } = req.body;
   const userId = req.user._id;
 
+  // eslint-disable-next-line max-len
+  if (!name || name.length < 2 || name.length > 30 || !about || about.length < 2 || about.length > 30) {
+    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid data provided' });
+  }
+
   User.findByIdAndUpdate(userId, { name, about }, { new: true })
-    // eslint-disable-next-line consistent-return
     .then((user) => {
       if (!user) {
         return res.status(ERROR_CODE_NOT_FOUND).send({ message: 'User not found' });
       }
       res.send(user);
     })
-    // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.name === 'SomeErrorName') {
         return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Запрашиваемый пользователь не найден' });
@@ -72,8 +80,11 @@ const updateAvatar = (req, res) => {
   const { avatar } = req.body;
   const userId = req.user._id;
 
+  if (!avatar || avatar.length === 0) {
+    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid data provided' });
+  }
+
   User.findByIdAndUpdate(userId, { avatar }, { new: true })
-    // eslint-disable-next-line consistent-return
     .then((user) => {
       if (!user) {
         return res.status(ERROR_CODE_NOT_FOUND).send({ message: 'User not found' });
