@@ -1,7 +1,5 @@
 const Card = require('../models/card');
 
-const ObjectId = mongoose.Types.ObjectId;
-
 const ERROR_CODE_BAD_REQUEST = 400;
 
 const ERROR_CODE_NOT_FOUND = 404;
@@ -24,19 +22,16 @@ const createCard = (req, res) => {
   const { name, link } = req.body;
   const owner = req.user._id;
 
-  if (!name || !link) {
-    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Name and link are required' });
-  }
-
   Card.create({ name, link, owner })
     .then((card) => {
       res.send(card);
     })
+    // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid data provided' });
+        return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
       }
-      res.status(ERROR_CODE_DEFAULT).send({ message: 'Something went wrong' });
+      res.status(ERROR_CODE_DEFAULT).send({ message: 'Что-то пошло не так' });
     });
 };
 
@@ -44,11 +39,8 @@ const createCard = (req, res) => {
 const deleteCard = (req, res) => {
   const { cardId } = req.params;
 
-  if (!ObjectId.isValid(cardId)) {
-    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid card ID' });
-  }
-
   Card.findByIdAndRemove(cardId)
+    // eslint-disable-next-line consistent-return
     .then((card) => {
       if (!card) {
         return res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Card not found' });
