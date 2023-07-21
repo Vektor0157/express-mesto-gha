@@ -18,9 +18,14 @@ const getUsers = (req, res) => {
 };
 
 // Контроллер для получения пользователя по _id
+// eslint-disable-next-line consistent-return
 const getUserById = (req, res) => {
   const { userId } = req.params;
-
+  // Check if the provided userId is a valid ObjectId
+  // eslint-disable-next-line no-undef
+  if (!isValidObjectId(userId)) {
+    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid user ID' });
+  }
   User.findById(userId)
     // eslint-disable-next-line consistent-return
     .then((user) => {

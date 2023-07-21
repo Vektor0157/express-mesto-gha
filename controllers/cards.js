@@ -36,8 +36,13 @@ const createCard = (req, res) => {
 };
 
 // Обработчик для DELETE /cards/:cardId
+// eslint-disable-next-line consistent-return
 const deleteCard = (req, res) => {
   const { cardId } = req.params;
+  // eslint-disable-next-line no-undef
+  if (!isValidObjectId(cardId)) {
+    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid card ID' });
+  }
 
   Card.findByIdAndRemove(cardId)
     // eslint-disable-next-line consistent-return
@@ -53,10 +58,14 @@ const deleteCard = (req, res) => {
 };
 
 // Обработчик для PUT /cards/:cardId/likes
+// eslint-disable-next-line consistent-return
 const likeCard = (req, res) => {
   const { cardId } = req.params;
   const userId = req.user._id;
-
+  // eslint-disable-next-line no-undef
+  if (!isValidObjectId(cardId)) {
+    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid card ID' });
+  }
   Card.findByIdAndUpdate(
     cardId,
     { $addToSet: { likes: userId } },
@@ -75,12 +84,14 @@ const likeCard = (req, res) => {
 };
 
 // Обработчик для DELETE /cards/:cardId/likes
+// eslint-disable-next-line consistent-return
 const dislikeCard = (req, res) => {
-  const { cardId } = req.params; // Remove userId from the params since it's not needed here
-
-  // Use req.user._id to get the userId from the authenticated user
+  const { cardId } = req.params;
+  // eslint-disable-next-line no-undef
+  if (!isValidObjectId(cardId)) {
+    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid card ID' });
+  }
   const userId = req.user._id;
-
   Card.findByIdAndUpdate(
     cardId,
     { $pull: { likes: userId } },
