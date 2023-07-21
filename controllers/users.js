@@ -50,6 +50,10 @@ const createUser = (req, res) => {
 const updateProfile = (req, res) => {
   const { name, about } = req.body;
   const userId = req.user._id;
+  // eslint-disable-next-line max-len
+  if (!name || name.length < 2 || name.length > 30 || !about || about.length < 2 || about.length > 30) {
+    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid data provided' });
+  }
 
   User.findByIdAndUpdate(userId, { name, about }, { new: true })
     // eslint-disable-next-line consistent-return
@@ -62,15 +66,21 @@ const updateProfile = (req, res) => {
     // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.name === 'SomeErrorName') {
-        return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Запрашиваемый пользователь не найден' });
+        return res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Запрашиваемый пользователь не найден' });
       }
       res.status(ERROR_CODE_DEFAULT).send({ message: 'Что-то пошло не так' });
     });
 };
 
+// eslint-disable-next-line consistent-return
 const updateAvatar = (req, res) => {
   const { avatar } = req.body;
   const userId = req.user._id;
+
+  // Validate the input data before updating the user
+  if (!avatar || avatar.length === 0) {
+    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid data provided' });
+  }
 
   User.findByIdAndUpdate(userId, { avatar }, { new: true })
     // eslint-disable-next-line consistent-return
