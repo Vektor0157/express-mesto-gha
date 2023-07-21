@@ -59,7 +59,6 @@ const updateProfile = (req, res) => {
   if (!name || name.length < 2 || name.length > 30 || !about || about.length < 2 || about.length > 30) {
     return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid data provided' });
   }
-
   User.findByIdAndUpdate(userId, { name, about }, { new: true })
     // eslint-disable-next-line consistent-return
     .then((user) => {
@@ -80,7 +79,6 @@ const updateProfile = (req, res) => {
 const updateAvatar = (req, res) => {
   const { avatar } = req.body;
   const userId = req.user._id;
-
   User.findByIdAndUpdate(userId, { avatar }, { new: true })
     // eslint-disable-next-line consistent-return
     .then((user) => {
