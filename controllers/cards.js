@@ -1,6 +1,5 @@
-const Card = require('../models/card');
-
 const { isValidObjectId } = require('mongoose');
+const Card = require('../models/card');
 
 const ERROR_CODE_BAD_REQUEST = 400;
 
