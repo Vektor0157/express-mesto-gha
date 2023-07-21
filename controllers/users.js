@@ -47,6 +47,7 @@ const createUser = (req, res) => {
     });
 };
 
+// eslint-disable-next-line consistent-return
 const updateProfile = (req, res) => {
   const { name, about } = req.body;
   const userId = req.user._id;
@@ -56,12 +57,14 @@ const updateProfile = (req, res) => {
   }
 
   User.findByIdAndUpdate(userId, { name, about }, { new: true })
+    // eslint-disable-next-line consistent-return
     .then((user) => {
       if (!user) {
         return res.status(ERROR_CODE_NOT_FOUND).send({ message: 'User not found' });
       }
       res.send(user);
     })
+    // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.name === 'SomeErrorName') {
         return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Запрашиваемый пользователь не найден' });
@@ -70,6 +73,7 @@ const updateProfile = (req, res) => {
     });
 };
 
+// eslint-disable-next-line consistent-return
 const updateAvatar = (req, res) => {
   const { avatar } = req.body;
   const userId = req.user._id;
@@ -80,6 +84,7 @@ const updateAvatar = (req, res) => {
   }
 
   User.findByIdAndUpdate(userId, { avatar }, { new: true })
+    // eslint-disable-next-line consistent-return
     .then((user) => {
       if (!user) {
         return res.status(ERROR_CODE_NOT_FOUND).send({ message: 'User not found' });
