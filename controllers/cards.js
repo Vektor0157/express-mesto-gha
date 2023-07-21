@@ -1,5 +1,7 @@
 const Card = require('../models/card');
 
+const { isValidObjectId } = require('mongoose');
+
 const ERROR_CODE_BAD_REQUEST = 400;
 
 const ERROR_CODE_NOT_FOUND = 404;
@@ -47,16 +49,23 @@ const deleteCard = (req, res) => {
       }
       res.send(card);
     })
+    // eslint-disable-next-line consistent-return
     .catch((err) => {
-      res.status(ERROR_CODE_DEFAULT).send({ message: err.message });
+      if (err.name === 'ValidationError') {
+        return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+      }
+      res.status(ERROR_CODE_DEFAULT).send({ message: 'Что-то пошло не так' });
     });
 };
 
 // Обработчик для PUT /cards/:cardId/likes
+// eslint-disable-next-line consistent-return
 const likeCard = (req, res) => {
   const { cardId } = req.params;
   const userId = req.user._id;
-
+  if (!isValidObjectId(cardId)) {
+    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid card ID' });
+  }
   Card.findByIdAndUpdate(
     cardId,
     { $addToSet: { likes: userId } },
@@ -75,9 +84,12 @@ const likeCard = (req, res) => {
 };
 
 // Обработчик для DELETE /cards/:cardId/likes
+// eslint-disable-next-line consistent-return
 const dislikeCard = (req, res) => {
   const { cardId, userId } = req.params;
-
+  if (!isValidObjectId(cardId)) {
+    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid card ID' });
+  }
   Card.findByIdAndUpdate(
     cardId,
     { $pull: { likes: userId } },
