@@ -21,8 +21,12 @@ const getUsers = (req, res) => {
 const getUserById = (req, res) => {
   const { userId } = req.params;
 
+  // eslint-disable-next-line no-undef
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid user ID provided' });
+  }
+
   User.findById(userId)
-    // eslint-disable-next-line consistent-return
     .then((user) => {
       if (!user) {
         return res.status(ERROR_CODE_NOT_FOUND).send({ message: 'User not found' });
