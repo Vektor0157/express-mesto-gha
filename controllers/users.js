@@ -1,3 +1,4 @@
+const { isValidObjectId } = require('mongoose');
 const User = require('../models/user');
 
 const ERROR_CODE_BAD_REQUEST = 400;
@@ -18,9 +19,12 @@ const getUsers = (req, res) => {
 };
 
 // Контроллер для получения пользователя по _id
+// eslint-disable-next-line consistent-return
 const getUserById = (req, res) => {
   const { userId } = req.params;
-
+  if (!isValidObjectId(userId)) {
+    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid user ID' });
+  }
   User.findById(userId)
     // eslint-disable-next-line consistent-return
     .then((user) => {

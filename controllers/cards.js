@@ -37,9 +37,12 @@ const createCard = (req, res) => {
 };
 
 // Обработчик для DELETE /cards/:cardId
+// eslint-disable-next-line consistent-return
 const deleteCard = (req, res) => {
   const { cardId } = req.params;
-
+  if (!isValidObjectId(cardId)) {
+    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid card ID' });
+  }
   Card.findByIdAndRemove(cardId)
     // eslint-disable-next-line consistent-return
     .then((card) => {
