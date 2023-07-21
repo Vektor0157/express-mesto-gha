@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const User = require('../models/user');
 
 const ERROR_CODE_BAD_REQUEST = 400;
@@ -30,7 +31,11 @@ const getUserById = (req, res) => {
       res.send(user);
     })
     .catch((err) => {
-      res.status(ERROR_CODE_DEFAULT).send({ message: err.message || 'Error while getting user by id' });
+      if (err instanceof mongoose.CastError) {
+        res.status(ERROR_CODE_BAD_REQUEST).send({ message: err.message });
+      } else {
+        res.status(ERROR_CODE_DEFAULT).send({ message: err.message || 'Error while getting user by id' });
+      }
     });
 };
 
@@ -67,7 +72,7 @@ const updateProfile = (req, res) => {
     // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.name === 'SomeErrorName') {
-        return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Запрашиваемый пользователь не найден' });
+        return res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Запрашиваемый пользователь не найден' });
       }
       res.status(ERROR_CODE_DEFAULT).send({ message: 'Что-то пошло не так' });
     });

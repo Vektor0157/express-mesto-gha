@@ -47,11 +47,7 @@ const deleteCard = (req, res) => {
       }
       res.send(card);
     })
-    // eslint-disable-next-line consistent-return
     .catch((err) => {
-      if (err.name === 'CastError') {
-        return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid cardId' });
-      }
       res.status(ERROR_CODE_DEFAULT).send({ message: err.message });
     });
 };
@@ -73,11 +69,7 @@ const likeCard = (req, res) => {
       }
       res.send(card);
     })
-    // eslint-disable-next-line consistent-return
     .catch((err) => {
-      if (err.name === 'CastError') {
-        return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid cardId' });
-      }
       res.status(ERROR_CODE_DEFAULT).send({ message: err.message });
     });
 };
