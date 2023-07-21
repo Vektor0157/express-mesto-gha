@@ -57,16 +57,12 @@ const likeCard = (req, res) => {
   const { cardId } = req.params;
   const userId = req.user._id;
 
-  // eslint-disable-next-line no-undef
-  if (!mongoose.Types.ObjectId.isValid(cardId)) {
-    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid card ID provided' });
-  }
-
   Card.findByIdAndUpdate(
     cardId,
     { $addToSet: { likes: userId } },
     { new: true },
   )
+    // eslint-disable-next-line consistent-return
     .then((card) => {
       if (!card) {
         return res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Card not found' });
@@ -83,16 +79,12 @@ const dislikeCard = (req, res) => {
   const { cardId } = req.params;
   const userId = req.user._id;
 
-  // eslint-disable-next-line no-undef
-  if (!mongoose.Types.ObjectId.isValid(cardId)) {
-    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid card ID provided' });
-  }
-
   Card.findByIdAndUpdate(
     cardId,
     { $pull: { likes: userId } },
     { new: true },
   )
+    // eslint-disable-next-line consistent-return
     .then((card) => {
       if (!card) {
         return res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Card not found' });
