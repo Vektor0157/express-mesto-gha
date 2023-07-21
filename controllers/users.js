@@ -47,6 +47,7 @@ const createUser = (req, res) => {
     });
 };
 
+// eslint-disable-next-line consistent-return
 const updateProfile = (req, res) => {
   const { name, about } = req.body;
   const userId = req.user._id;

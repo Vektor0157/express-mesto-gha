@@ -76,8 +76,7 @@ const likeCard = (req, res) => {
 
 // Обработчик для DELETE /cards/:cardId/likes
 const dislikeCard = (req, res) => {
-  const { cardId } = req.params;
-  const userId = req.user._id;
+  const { cardId, userId } = req.params;
 
   Card.findByIdAndUpdate(
     cardId,
