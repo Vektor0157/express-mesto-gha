@@ -29,6 +29,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/users', usersRouter);
 app.use('/cards', cardsRouter);
 
+app.use((req, res) => {
+  res.status(404).send({ message: 'Not Found' });
+});
+
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`Server is running on http://localhost:${PORT}`);

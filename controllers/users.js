@@ -46,7 +46,11 @@ const createUser = (req, res) => {
     .then((user) => {
       res.send(user);
     })
+    // eslint-disable-next-line consistent-return
     .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid user data' });
+      }
       res.status(ERROR_CODE_BAD_REQUEST).send({ message: err.message || 'Error while creating user' });
     });
 };
@@ -69,7 +73,7 @@ const updateProfile = (req, res) => {
     })
     // eslint-disable-next-line consistent-return
     .catch((err) => {
-      if (err.name === 'SomeErrorName') {
+      if (err.name === 'ValidationError') {
         return res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Запрашиваемый пользователь не найден' });
       }
       res.status(ERROR_CODE_DEFAULT).send({ message: 'Что-то пошло не так' });
@@ -79,7 +83,10 @@ const updateProfile = (req, res) => {
 const updateAvatar = (req, res) => {
   const { avatar } = req.body;
   const userId = req.user._id;
-  User.findByIdAndUpdate(userId, { avatar }, { new: true })
+
+  // Validate avatar here if necessary (e.g., check if it's a valid URL)
+
+  User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
     // eslint-disable-next-line consistent-return
     .then((user) => {
       if (!user) {
@@ -87,8 +94,12 @@ const updateAvatar = (req, res) => {
       }
       res.send(user);
     })
+    // eslint-disable-next-line consistent-return
     .catch((err) => {
-      res.status(ERROR_CODE_DEFAULT).send({ message: err.message });
+      if (err.name === 'ValidationError') {
+        return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid avatar URL' });
+      }
+      res.status(ERROR_CODE_DEFAULT).send({ message: err.message || 'Something went wrong' });
     });
 };
 

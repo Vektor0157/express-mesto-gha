@@ -51,12 +51,9 @@ const deleteCard = (req, res) => {
       }
       res.send(card);
     })
-    // eslint-disable-next-line consistent-return
+    // eslint-disable-next-line no-unused-vars
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
-      }
-      res.status(ERROR_CODE_DEFAULT).send({ message: 'Что-то пошло не так' });
+      res.status(ERROR_CODE_DEFAULT).send({ message: 'Something went wrong' });
     });
 };
 
