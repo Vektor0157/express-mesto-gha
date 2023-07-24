@@ -8,6 +8,8 @@ const bodyParser = require('body-parser');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
 
+const ERROR_CODE_NOT_FOUND = 404;
+
 const app = express();
 const { PORT = 3000 } = process.env;
 
@@ -30,7 +32,7 @@ app.use('/users', usersRouter);
 app.use('/cards', cardsRouter);
 
 app.use((req, res) => {
-  res.status(404).send({ message: 'Not Found' });
+  res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Not Found' });
 });
 
 app.listen(PORT, () => {
