@@ -1,5 +1,5 @@
 const { isValidObjectId } = require('mongoose');
-// eslint-disable-next-line import/no-unresolved
+// eslint-disable-next-line import/no-unresolved, import/no-extraneous-dependencies
 const bcrypt = require('bcrypt');
 // eslint-disable-next-line import/no-unresolved, import/no-extraneous-dependencies
 const jwt = require('jsonwebtoken');

@@ -2,10 +2,8 @@
 const express = require('express');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const mongoose = require('mongoose');
-// eslint-disable-next-line import/no-extraneous-dependencies
-const bodyParser = require('body-parser');
 
-const { auth, errorHandler } = require('./middlewares/auth');
+const auth = require('./middlewares/auth');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
 
@@ -21,15 +19,12 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   useUnifiedTopology: true,
 });
 
-app.use('/', bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/', express.json());
 app.use('/users', auth, usersRouter);
 app.use('/cards', auth, cardsRouter);
 
 app.post('/signin', login);
 app.post('/signup', createUser);
-
-app.use(errorHandler);
 
 app.use('*', auth, (req, res) => {
   res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Not Found' });
