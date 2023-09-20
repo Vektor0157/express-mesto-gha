@@ -3,7 +3,7 @@ const express = require('express');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const mongoose = require('mongoose');
 // eslint-disable-next-line import/no-unresolved, import/no-extraneous-dependencies
-const { celebrate, Joi } = require('celebrate');
+const { celebrate, errors, Joi } = require('celebrate');
 
 const auth = require('./middlewares/auth');
 const usersRouter = require('./routes/users');
@@ -42,7 +42,7 @@ app.post('/signup', celebrate({
     password: Joi.string().required().min(8),
   }),
 }), createUser);
-
+app.use(errors());
 app.use('*', auth, (req, res) => {
   res.status(NotFoundError).send({ message: 'Not Found' });
 });

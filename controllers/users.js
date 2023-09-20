@@ -2,6 +2,8 @@
 const bcrypt = require('bcrypt');
 // eslint-disable-next-line import/no-unresolved, import/no-extraneous-dependencies
 const jwt = require('jsonwebtoken');
+// eslint-disable-next-line import/no-extraneous-dependencies
+const { celebrate, Joi } = require('celebrate');
 const User = require('../models/user');
 
 const NotFoundError = require('../errors/NotFoundError');
@@ -144,7 +146,7 @@ const updateAvatar = (req, res) => {
         next(res.status(BadRequestError).send({ message: 'Invalid avatar URL' }));
       }
       // eslint-disable-next-line no-undef
-      next(res.status(ServerError).send({ message: err.message || 'Something went wrong' }));
+      next(new ServerError(err.message || 'Something went wrong'));
     });
 };
 
