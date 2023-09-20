@@ -33,6 +33,5 @@ router.patch('/me/avatar', celebrate({
     avatar: Joi.string().regex(/^(https?:\/\/)?([a-z0-9-]+\.)*[a-z0-9-]+\.[a-z]{2,}\/?([^\s]*)$/),
   }),
 }), updateAvatar);
-router.post('/', createUser);
 
 module.exports = router;
