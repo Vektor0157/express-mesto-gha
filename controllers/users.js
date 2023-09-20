@@ -1,4 +1,8 @@
 const { isValidObjectId } = require('mongoose');
+// eslint-disable-next-line import/no-unresolved
+const bcrypt = require('bcrypt');
+// eslint-disable-next-line import/no-unresolved, import/no-extraneous-dependencies
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 const ERROR_CODE_BAD_REQUEST = 400;
@@ -40,11 +44,29 @@ const getUserById = (req, res) => {
 
 // Контроллер для создания пользователя
 const createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-
-  User.create({ name, about, avatar })
+  const {
+    email,
+    password,
+    name,
+    about,
+    avatar,
+  } = req.body;
+  bcrypt.hash(password, 10)
+    .then((hashedPassword) => User.create({
+      email,
+      password: hashedPassword,
+      name,
+      about,
+      avatar,
+    }))
     .then((user) => {
-      res.send(user);
+      res.send({
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+      });
     })
     // eslint-disable-next-line consistent-return
     .catch((err) => {
@@ -52,6 +74,32 @@ const createUser = (req, res) => {
         return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid user data' });
       }
       res.status(ERROR_CODE_BAD_REQUEST).send({ message: err.message || 'Error while creating user' });
+    });
+};
+
+const login = (req, res) => {
+  const { email, password } = req.body;
+  User.findOne({ email }).select('+password')
+    .then((user) => {
+      if (!user) {
+        return res.status(401).send({ message: 'Неправильные почта или пароль' });
+      }
+      return bcrypt.compare(password, user.password)
+        // eslint-disable-next-line consistent-return
+        .then((match) => {
+          if (!match) {
+            return res.status(401).send({ message: 'Неправильные почта или пароль' });
+          }
+          const token = jwt.sign({ _id: user._id.toString() }, 'your-secret-key', { expiresIn: '7d' });
+          res.cookie('jwt', token, { httpOnly: true });
+          res.send({ message: 'Аутентификация успешна' });
+        })
+        .catch(() => {
+          res.status(ERROR_CODE_DEFAULT).send({ message: 'Ошибка на сервере' });
+        });
+    })
+    .catch(() => {
+      res.status(ERROR_CODE_DEFAULT).send({ message: 'Ошибка на сервере' });
     });
 };
 
@@ -78,6 +126,20 @@ const updateProfile = (req, res) => {
       }
       res.status(ERROR_CODE_DEFAULT).send({ message: 'Что-то пошло не так' });
     });
+};
+
+const getCurrentUser = (req, res) => {
+  const {
+    _id, name,
+    about,
+    avatar,
+  } = req.user;
+  res.send({
+    _id,
+    name,
+    about,
+    avatar,
+  });
 };
 
 const updateAvatar = (req, res) => {
@@ -109,4 +171,6 @@ module.exports = {
   createUser,
   updateProfile,
   updateAvatar,
+  login,
+  getCurrentUser,
 };
