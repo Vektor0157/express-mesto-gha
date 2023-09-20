@@ -14,9 +14,6 @@ const getUsers = (req, res) => {
     .then((users) => {
       res.send(users);
     })
-    .catch((err) => {
-      res.status(ServerError).send({ message: err.message || 'Error while getting users' });
-    })
     // eslint-disable-next-line no-undef
     .catch(next);
 };
@@ -67,13 +64,13 @@ const createUser = (req, res) => {
     .catch((err) => {
       if (err.code === 11000) {
         // eslint-disable-next-line no-undef
-        next(res.status(ConflictError).send({ message: 'User with this email already exists' }));
+        next(new ConflictError('User with this email already exists'));
       } else if (err.name === 'ValidationError') {
         // eslint-disable-next-line no-undef
-        next(res.status(BadRequestError).send({ message: 'Invalid user data' }));
+        next(new BadRequestError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
       }
       // eslint-disable-next-line no-undef
-      next(res.status(BadRequestError).send({ message: err.message || 'Error while creating user' }));
+      next(err);
     });
 };
 
