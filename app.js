@@ -2,6 +2,8 @@
 const express = require('express');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const mongoose = require('mongoose');
+// eslint-disable-next-line import/no-unresolved
+const { celebrate, Joi } = require('celebrate');
 
 const auth = require('./middlewares/auth');
 const usersRouter = require('./routes/users');
@@ -23,8 +25,22 @@ app.use('/', express.json());
 app.use('/users', auth, usersRouter);
 app.use('/cards', auth, cardsRouter);
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().min(2).max(30)
+      .email(),
+    password: Joi.string().required().min(6),
+  }),
+}), login);
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().regex(/^:?https?:\/\/(www\.)?[a-zA-Z\d-]+\.[\w\d\-.~:/?#[\]@!$&'()*+,;=]{2,}#?$/),
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(8),
+  }),
+}), createUser);
 
 app.use('*', auth, (req, res) => {
   res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Not Found' });
