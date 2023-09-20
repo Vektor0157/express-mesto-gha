@@ -3,39 +3,12 @@ const bcrypt = require('bcrypt');
 // eslint-disable-next-line import/no-unresolved, import/no-extraneous-dependencies
 const jwt = require('jsonwebtoken');
 // eslint-disable-next-line import/no-extraneous-dependencies
-const { celebrate, Joi } = require('celebrate');
 const User = require('../models/user');
 
 const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
 const ConflictError = require('../errors/ConflictError');
 const ServerError = require('../errors/ServerError');
-// Контроллер для получения всех пользователей
-const getUsers = (req, res, next) => {
-  User.find()
-    .then((users) => {
-      res.send(users);
-    })
-    .catch(() => {
-      next(new ServerError('На сервере произошла ошибка.'));
-    });
-};
-
-// Контроллер для получения пользователя по _id
-// eslint-disable-next-line consistent-return
-const getUserById = (req, res) => {
-  const { userId } = req.params;
-  User.findById(userId)
-    // eslint-disable-next-line consistent-return
-    .then((user) => {
-      if (!user) {
-        return res.status(NotFoundError).send({ message: 'User not found' });
-      }
-      res.send(user);
-    })
-    // eslint-disable-next-line no-undef
-    .catch(next);
-};
 
 // Контроллер для создания пользователя
 const createUser = (req, res) => {
@@ -89,6 +62,38 @@ const login = (req, res, next) => {
     })
     .catch(next);
 };
+
+// Контроллер для получения всех пользователей
+const getUsers = (req, res, next) => {
+  User.find()
+    .then((users) => {
+      res.send(users);
+    })
+    .catch((error) => {
+      if (error.name === 'ValidationError' || error.name === 'ServerError') {
+        res.status(401).send({ message: error.message });
+      } else {
+        next(error);
+      }
+    });
+};
+
+// Контроллер для получения пользователя по _id
+// eslint-disable-next-line consistent-return
+const getUserById = (req, res) => {
+  const { userId } = req.params;
+  User.findById(userId)
+    // eslint-disable-next-line consistent-return
+    .then((user) => {
+      if (!user) {
+        return res.status(NotFoundError).send({ message: 'User not found' });
+      }
+      res.send(user);
+    })
+    // eslint-disable-next-line no-undef
+    .catch(next);
+};
+
 // eslint-disable-next-line consistent-return
 const updateProfile = (req, res) => {
   const { name, about } = req.body;

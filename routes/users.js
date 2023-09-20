@@ -2,7 +2,6 @@
 const express = require('express');
 
 const router = express.Router();
-const auth = require('../middlewares/auth');
 
 // eslint-disable-next-line import/no-extraneous-dependencies, import/order
 const { celebrate, Joi } = require('celebrate');
@@ -15,7 +14,7 @@ const {
   getCurrentUser,
 } = require('../controllers/users');
 
-router.get('/', auth, getUsers);
+router.get('/', getUsers);
 router.get('/me', getCurrentUser);
 router.get('/:userId', celebrate({
   params: Joi.object().keys({

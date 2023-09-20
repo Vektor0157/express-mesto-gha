@@ -1,19 +1,26 @@
-// eslint-disable-next-line import/no-unresolved, import/no-extraneous-dependencies
+// eslint-disable-next-line import/no-extraneous-dependencies
 const jwt = require('jsonwebtoken');
-
 const ValidationError = require('../errors/ValidationError');
+
+const extractBearerToken = (header) => header.replace('Bearer ', '');
+
 // eslint-disable-next-line consistent-return
 module.exports = (req, res, next) => {
-  const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
-  if (!token) {
-    return ValidationError(res);
+  const { authorization } = req.headers;
+
+  if (!authorization || !authorization.startsWith('Bearer ')) {
+    return next(new ValidationError('Необходима авторизация!'));
   }
+
+  const token = extractBearerToken(authorization);
   let payload;
+
   try {
-    payload = jwt.verify(token, 'your-secret-key');
+    payload = jwt.verify(token, 'super-strong-secret');
   } catch (err) {
-    return ValidationError(res);
+    return next(new ValidationError('Неверный токен'));
   }
+
   req.user = payload;
   next();
 };

@@ -9,10 +9,9 @@ const auth = require('./middlewares/auth');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
 
-const { createUser, login } = require('./controllers/users');
-
-const NotFoundError = require('./errors/NotFoundError');
 const ServerError = require('./errors/ServerError');
+const NotFoundError = require('./errors/NotFoundError');
+const { createUser, login } = require('./controllers/users');
 
 const app = express();
 const { PORT = 3000 } = process.env;
@@ -42,10 +41,10 @@ app.post('/signup', celebrate({
     password: Joi.string().required().min(8),
   }),
 }), createUser);
-app.use(errors());
 app.use('*', auth, (req, res) => {
   res.status(NotFoundError).send({ message: 'Not Found' });
 });
+app.use(errors());
 app.use(ServerError);
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
