@@ -11,7 +11,8 @@ const cardsRouter = require('./routes/cards');
 
 const { createUser, login } = require('./controllers/users');
 
-const ERROR_CODE_NOT_FOUND = 404;
+const NotFoundError = require('./errors/NotFoundError');
+const ServerError = require('./errors/ServerError');
 
 const app = express();
 const { PORT = 3000 } = process.env;
@@ -43,9 +44,9 @@ app.post('/signup', celebrate({
 }), createUser);
 
 app.use('*', auth, (req, res) => {
-  res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Not Found' });
+  res.status(NotFoundError).send({ message: 'Not Found' });
 });
-
+app.use(ServerError);
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`Server is running on http://localhost:${PORT}`);
