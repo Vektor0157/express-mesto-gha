@@ -9,13 +9,14 @@ const BadRequestError = require('../errors/BadRequestError');
 const ConflictError = require('../errors/ConflictError');
 const ServerError = require('../errors/ServerError');
 // Контроллер для получения всех пользователей
-const getUsers = (req, res) => {
+const getUsers = (req, res, next) => {
   User.find()
     .then((users) => {
       res.send(users);
     })
-    // eslint-disable-next-line no-undef
-    .catch(next);
+    .catch(() => {
+      next(new ServerError('На сервере произошла ошибка.'));
+    });
 };
 
 // Контроллер для получения пользователя по _id
@@ -67,7 +68,7 @@ const createUser = (req, res) => {
         next(new ConflictError('User with this email already exists'));
       } else if (err.name === 'ValidationError') {
         // eslint-disable-next-line no-undef
-        next(new BadRequestError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
+        next(new BadRequestError('Invalid user data'));
       }
       // eslint-disable-next-line no-undef
       next(err);
