@@ -1,6 +1,5 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const express = require('express');
-const { getCurrentUser } = require('../controllers/users');
 
 const router = express.Router();
 
@@ -10,9 +9,9 @@ const { celebrate, Joi } = require('celebrate');
 const {
   getUsers,
   getUserById,
-  createUser,
   updateProfile,
   updateAvatar,
+  getCurrentUser,
 } = require('../controllers/users');
 
 router.get('/', getUsers);
