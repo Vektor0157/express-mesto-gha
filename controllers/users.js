@@ -6,6 +6,7 @@ const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
 const ConflictError = require('../errors/ConflictError');
 const ServerError = require('../errors/ServerError');
+const ValidationError = require('../errors/ValidationError');
 
 // Контроллер для создания пользователя
 const createUser = (req, res, next) => {
@@ -52,23 +53,26 @@ const login = (req, res, next) => {
   const { email, password } = req.body;
   return User.findOne(email, password)
     .then((user) => {
+      if (!user) {
+        return res.status(ValidationError).send({ message: 'Неверный email или пароль' });
+      }
       const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
         expiresIn: '7d',
       });
-      res.send({ message: 'Авторизация прошла успешно', token });
+      return res.status(200).send({ message: 'Авторизация прошла успешно', token });
     })
     .catch(next);
 };
 
 // Контроллер для получения всех пользователей
 const getUsers = (req, res, next) => {
-  User.find()
+  User.find().select('-password')
     .then((users) => {
-      res.send(users);
+      res.status(200).send(users);
     })
     .catch((error) => {
       if (error.name === 'ValidationError' || error.name === 'ServerError') {
-        res.status(401).send({ message: error.message });
+        res.status(ValidationError).send({ message: error.message });
       } else {
         next(error);
       }
@@ -78,12 +82,12 @@ const getUsers = (req, res, next) => {
 // Контроллер для получения пользователя по _id
 const getUserById = (req, res, next) => {
   const { userId } = req.params;
-  User.findById(userId)
+  User.findById(userId).select('-password')
     .then((user) => {
       if (!user) {
         return res.status(NotFoundError).send({ message: 'User not found' });
       }
-      return res.send(user);
+      return res.status(200).send(user);
     })
     .catch(next);
 };
