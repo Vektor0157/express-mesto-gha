@@ -1,8 +1,6 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 const express = require('express');
-// eslint-disable-next-line import/no-extraneous-dependencies
 const mongoose = require('mongoose');
-// eslint-disable-next-line import/no-unresolved, import/no-extraneous-dependencies
 const { celebrate, errors, Joi } = require('celebrate');
 
 const auth = require('./middlewares/auth');

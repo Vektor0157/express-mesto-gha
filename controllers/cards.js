@@ -1,109 +1,87 @@
-const { isValidObjectId } = require('mongoose');
 const Card = require('../models/card');
-
-const ERROR_CODE_BAD_REQUEST = 400;
-
-const ERROR_CODE_NOT_FOUND = 404;
-
-const ERROR_CODE_DEFAULT = 500;
+const NotFoundError = require('../errors/NotFoundError');
+const BadRequestError = require('../errors/BadRequestError');
+const ForbiddenError = require('../errors/ForbiddenError');
 
 // Обработчик для GET /cards
-const getCards = (req, res) => {
+const getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => {
-      res.send(cards);
+      res.send({ cards });
     })
-    .catch((err) => {
-      res.status(ERROR_CODE_DEFAULT).send({ message: err.message });
-    });
+    .catch(next);
 };
 
 // Обработчик для POST /cards
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
   const owner = req.user._id;
-
   Card.create({ name, link, owner })
-    .then((card) => {
-      res.send(card);
-    })
-    // eslint-disable-next-line consistent-return
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+        next(new BadRequestError('Переданы некорректные данные при создании карты.'));
+      } else {
+        next(err);
       }
-      res.status(ERROR_CODE_DEFAULT).send({ message: 'Что-то пошло не так' });
     });
 };
 
 // Обработчик для DELETE /cards/:cardId
-// eslint-disable-next-line consistent-return
-const deleteCard = (req, res) => {
+const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
-  if (!isValidObjectId(cardId)) {
-    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid card ID' });
-  }
   Card.findByIdAndRemove(cardId)
-    // eslint-disable-next-line consistent-return
     .then((card) => {
       if (!card) {
-        return res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Card not found' });
+        return res.status(NotFoundError).send({ message: 'Card not found' });
       }
-      res.send(card);
+      if (!card.owner.equals(req.user._id)) {
+        return res.status(ForbiddenError).send('Невозможно удалить чужую карточку');
+      }
+      return res.send(card);
     })
-    // eslint-disable-next-line no-unused-vars
     .catch((err) => {
-      res.status(ERROR_CODE_DEFAULT).send({ message: 'Something went wrong' });
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Переданы некорректные данные.'));
+      } else {
+        next(err);
+      }
     });
 };
 
 // Обработчик для PUT /cards/:cardId/likes
-// eslint-disable-next-line consistent-return
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   const { cardId } = req.params;
   const userId = req.user._id;
-  if (!isValidObjectId(cardId)) {
-    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid card ID' });
-  }
   Card.findByIdAndUpdate(
     cardId,
     { $addToSet: { likes: userId } },
     { new: true },
   )
-    // eslint-disable-next-line consistent-return
     .then((card) => {
       if (!card) {
-        return res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Card not found' });
+        return res.status(NotFoundError).send({ message: 'Card not found' });
       }
-      res.send(card);
+      return res.send(card);
     })
-    .catch((err) => {
-      res.status(ERROR_CODE_DEFAULT).send({ message: err.message });
-    });
+    .catch(next);
 };
 
 // Обработчик для DELETE /cards/:cardId/likes
-// eslint-disable-next-line consistent-return
-const dislikeCard = (req, res) => {
+const dislikeCard = (req, res, next) => {
   const { cardId, userId } = req.params;
-  if (!isValidObjectId(cardId)) {
-    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Invalid card ID' });
-  }
   Card.findByIdAndUpdate(
     cardId,
     { $pull: { likes: userId } },
     { new: true },
   )
-    // eslint-disable-next-line consistent-return
     .then((card) => {
       if (!card) {
-        return res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Card not found' });
+        return res.status(NotFoundError).send({ message: 'Card not found' });
       }
-      res.send(card);
+      return res.send(card);
     })
-    .catch((err) => {
-      res.status(ERROR_CODE_DEFAULT).send({ message: err.message });
-    });
+    .catch(next);
 };
 
 module.exports = {

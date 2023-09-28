@@ -2,7 +2,6 @@
 const express = require('express');
 
 const router = express.Router();
-// eslint-disable-next-line import/no-extraneous-dependencies
 const { celebrate, Joi } = require('celebrate');
 
 const {
