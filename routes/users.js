@@ -3,7 +3,7 @@ const express = require('express');
 
 const router = express.Router();
 const { celebrate, Joi } = require('celebrate');
-
+const auth = require('../middlewares/auth');
 const {
   getUsers,
   getUserById,
@@ -12,6 +12,7 @@ const {
   getCurrentUser,
 } = require('../controllers/users');
 
+router.use(auth);
 router.get('/', getUsers);
 router.get('/me', getCurrentUser);
 

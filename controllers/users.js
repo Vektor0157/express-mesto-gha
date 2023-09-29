@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
@@ -51,15 +52,21 @@ const createUser = (req, res, next) => {
 
 const login = (req, res, next) => {
   const { email, password } = req.body;
-  return User.findOne(email, password)
+  return User.findOne({ email })
     .then((user) => {
       if (!user) {
         return res.status(ValidationError).send({ message: 'Неверный email или пароль' });
       }
-      const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
-        expiresIn: '7d',
-      });
-      return res.status(200).send({ message: 'Авторизация прошла успешно', token });
+      bcrypt.compare(password, user.password)
+        .then((isValidPassword) => {
+          if (!isValidPassword) {
+            return res.status(ValidationError).send({ message: 'Неверный email или пароль' });
+          }
+          const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
+            expiresIn: '7d',
+          });
+          return res.status(200).send({ message: 'Авторизация прошла успешно', token });
+        });
     })
     .catch(next);
 };
@@ -95,6 +102,12 @@ const getUserById = (req, res, next) => {
 const updateProfile = (req, res, next) => {
   const { name, about } = req.body;
   const userId = req.user._id;
+  if (name.length < 2) {
+    return res.status(BadRequestError).send({ message: 'Имя должно содержать минимум 2 символа' });
+  }
+  if (name.length > 30) {
+    return res.status(BadRequestError).send({ message: 'Имя должно содержать максимум 30 символов' });
+  }
   User.findByIdAndUpdate(userId, { name, about }, { new: true })
     .then((user) => {
       if (!user) {
@@ -112,9 +125,13 @@ const updateProfile = (req, res, next) => {
 };
 
 const getCurrentUser = (req, res, next) => {
-  User.findById(req.user)
+  const userId = req.user._id;
+  User.findById(userId).select('-password')
     .then((user) => {
-      res.send({ user });
+      if (!user) {
+        return res.status(NotFoundError).send({ message: 'Пользователь не найден' });
+      }
+      return res.status(200).send(user);
     })
     .catch(next);
 };
