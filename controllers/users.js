@@ -55,7 +55,7 @@ const login = (req, res, next) => {
   return User.findOne({ email })
     .then((user) => {
       if (!user) {
-        return res.status(ValidationError).send({ message: 'Неверный email или пароль' });
+        return res.status(BadRequestError).send({ message: 'Неверный email или пароль' });
       }
       bcrypt.compare(password, user.password)
         .then((isValidPassword) => {
