@@ -13,8 +13,8 @@ const {
 } = require('../controllers/users');
 
 router.use(auth);
-router.get('/', getUsers);
-router.get('/me', getCurrentUser);
+router.get('/', auth, getUsers);
+router.get('/me', auth, getCurrentUser);
 
 router.get('/:userId', celebrate({
   params: Joi.object().keys({
@@ -27,12 +27,12 @@ router.patch('/me', celebrate({
     name: Joi.string().required().min(2).max(30),
     about: Joi.string().required().min(2).max(30),
   }),
-}), updateProfile);
+}), auth, updateProfile);
 
 router.patch('/me/avatar', celebrate({
   body: Joi.object().keys({
     avatar: Joi.string().regex(/^(https?:\/\/)?([a-z0-9-]+\.)*[a-z0-9-]+\.[a-z]{2,}\/?([^\s]*)$/),
   }),
-}), updateAvatar);
+}), auth, updateAvatar);
 
 module.exports = router;
