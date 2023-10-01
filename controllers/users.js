@@ -78,11 +78,7 @@ const getUsers = (req, res, next) => {
       res.status(200).send(users);
     })
     .catch((error) => {
-      if (error.name === 'ValidationError' || error.name === 'ServerError') {
-        res.status(ValidationError).send({ message: error.message });
-      } else {
-        next(error);
-      }
+      next(new ServerError(error.message || 'Something went wrong'));
     });
 };
 
@@ -96,17 +92,16 @@ const getUserById = (req, res, next) => {
       }
       return res.status(200).send(user);
     })
-    .catch(next);
+    .catch((error) => {
+      next(new ServerError(error.message || 'Something went wrong'));
+    });
 };
 
 const updateProfile = (req, res, next) => {
   const { name, about } = req.body;
   const userId = req.user._id;
-  if (name.length < 2) {
-    return res.status(BadRequestError).send({ message: 'Имя должно содержать минимум 2 символа' });
-  }
-  if (name.length > 30) {
-    return res.status(BadRequestError).send({ message: 'Имя должно содержать максимум 30 символов' });
+  if (name.length < 2 || name.length > 30) {
+    return next(new BadRequestError('Имя должно содержать от 2 до 30 символов'));
   }
   User.findByIdAndUpdate(userId, { name, about }, { new: true })
     .then((user) => {
@@ -133,7 +128,9 @@ const getCurrentUser = (req, res, next) => {
       }
       return res.status(200).send(user);
     })
-    .catch(next);
+    .catch((error) => {
+      next(new ServerError(error.message || 'Something went wrong'));
+    });
 };
 
 const updateAvatar = (req, res, next) => {
@@ -142,15 +139,15 @@ const updateAvatar = (req, res, next) => {
   User.findByIdAndUpdate(userId, { avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        return res.status(NotFoundError).send({ message: 'User not found' });
+        return next(new NotFoundError('User not found'));
       }
       return res.send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(res.status(BadRequestError).send({ message: 'Invalid avatar URL' }));
+        return next(new BadRequestError('Invalid avatar URL'));
       }
-      next(new ServerError(err.message || 'Something went wrong'));
+      return next(new ServerError('Something went wrong'));
     });
 };
 
