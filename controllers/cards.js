@@ -21,14 +21,13 @@ const createCard = (req, res, next) => {
       if (!card) {
         return next(new NotFoundError('Card not found'));
       }
-      return res.status(201).send({ data: card });
+      return res.status(201).send({ data: card._id });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные при создании карты.'));
       } else {
-        // Handle unexpected errors with a 500 status code
-        next(new Error('Internal Server Error'));
+        next(err);
       }
     });
 };
@@ -39,10 +38,10 @@ const deleteCard = (req, res, next) => {
   Card.findById(cardId)
     .then((card) => {
       if (!card) {
-        return next(new NotFoundError('Card not found'));
+        throw new NotFoundError('Card not found');
       }
       if (!card.owner.equals(userId)) {
-        return next(new ForbiddenError('Невозможно удалить чужую карточку'));
+        throw new ForbiddenError('Невозможно удалить чужую карточку');
       }
       return Card.findByIdAndRemove(cardId)
         .then((deletedCard) => {
@@ -65,23 +64,16 @@ const deleteCard = (req, res, next) => {
 const likeCard = (req, res, next) => {
   const { cardId } = req.params;
   const userId = req.user._id;
-  Card.findById(cardId)
+  return Card.findByIdAndUpdate(
+    cardId,
+    { $addToSet: { likes: userId } },
+    { new: true },
+  )
     .then((card) => {
       if (!card) {
         return next(new NotFoundError('Card not found'));
       }
-      return Card.findByIdAndUpdate(
-        cardId,
-        { $addToSet: { likes: userId } },
-        { new: true },
-      )
-        .then((updatedCard) => {
-          if (!updatedCard) {
-            return next(new NotFoundError('Card not found')); // Handle if the card is not found during the update
-          }
-          return res.status(200).send(updatedCard);
-        })
-        .catch(next);
+      return res.status(200).send(card);
     })
     .catch(next);
 };

@@ -12,7 +12,6 @@ const {
   getCurrentUser,
 } = require('../controllers/users');
 
-router.use(auth);
 router.get('/', auth, getUsers);
 router.get('/me', auth, getCurrentUser);
 

@@ -26,7 +26,6 @@ const userSchema = new mongoose.Schema(
           require_tld: true,
           require_protocol: true,
         }),
-        message: 'Неверный формат URL для аватара',
       },
     },
     email: {
@@ -42,7 +41,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       select: false,
-      minlength: 6,
     },
   },
   {

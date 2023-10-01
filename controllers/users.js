@@ -5,7 +5,6 @@ const User = require('../models/user');
 const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
 const ConflictError = require('../errors/ConflictError');
-const ServerError = require('../errors/ServerError');
 
 const createUser = (req, res, next) => {
   const {
@@ -39,7 +38,7 @@ const createUser = (req, res, next) => {
       } else if (err.name === 'ValidationError') {
         next(new BadRequestError('Invalid user data'));
       } else {
-        next(new ServerError(err.message || 'Something went wrong'));
+        next(err);
       }
     });
 };
@@ -62,9 +61,7 @@ const getUsers = (req, res, next) => {
     .then((users) => {
       res.status(200).send(users);
     })
-    .catch((error) => {
-      next(new ServerError(error.message || 'Something went wrong'));
-    });
+    .catch(next);
 };
 
 const getUserById = (req, res, next) => {
@@ -76,13 +73,7 @@ const getUserById = (req, res, next) => {
       }
       return res.status(200).send(user);
     })
-    .catch((error) => {
-      if (error.statusCode) {
-        res.status(error.statusCode).send({ message: error.message });
-      } else {
-        next(new ServerError(error.message || 'Something went wrong'));
-      }
-    });
+    .catch(next);
 };
 
 // eslint-disable-next-line consistent-return
@@ -117,9 +108,7 @@ const getCurrentUser = (req, res, next) => {
       }
       return res.status(200).send(user);
     })
-    .catch((error) => {
-      next(new ServerError(error.message || 'Something went wrong'));
-    });
+    .catch(next);
 };
 
 const updateAvatar = (req, res, next) => {
@@ -134,9 +123,10 @@ const updateAvatar = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return next(new BadRequestError('Invalid avatar URL'));
+        next(new BadRequestError('Invalid avatar URL'));
+      } else {
+        next(err);
       }
-      return next(new ServerError('Something went wrong'));
     });
 };
 
