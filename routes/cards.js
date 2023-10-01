@@ -12,7 +12,6 @@ const {
   dislikeCard,
 } = require('../controllers/cards');
 
-router.get('/', getCards);
 router.post('/', celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
@@ -21,6 +20,7 @@ router.post('/', celebrate({
       .regex(/^(https?:\/\/)?([a-z0-9-]+\.)*[a-z0-9-]+\.[a-z]{2,}\/?([^\s]*)$/),
   }),
 }), createCard);
+router.get('/', getCards);
 router.delete('/:cardId', celebrate({
   params: Joi.object().keys({
     cardId: Joi.string().length(24).hex().required(),
