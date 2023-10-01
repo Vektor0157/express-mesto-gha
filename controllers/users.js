@@ -47,21 +47,13 @@ const createUser = (req, res, next) => {
 
 const login = (req, res, next) => {
   const { email, password } = req.body;
-  return User.findOne({ email })
+
+  User.findUserByCredentials(email, password)
     .then((user) => {
-      if (!user) {
-        throw new ValidationError('Неверный email или пароль');
-      }
-      bcrypt.compare(password, user.password)
-        .then((isValidPassword) => {
-          if (!isValidPassword) {
-            throw new ValidationError('Неверный email или пароль');
-          }
-          const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
-            expiresIn: '7d',
-          });
-          return res.send({ message: 'Авторизация прошла успешно', token });
-        });
+      const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
+        expiresIn: '7d',
+      });
+      res.send({ message: 'Авторизация прошла успешно', token });
     })
     .catch(next);
 };
