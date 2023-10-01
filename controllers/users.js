@@ -1,4 +1,3 @@
-/* eslint-disable consistent-return */
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
@@ -9,7 +8,6 @@ const ConflictError = require('../errors/ConflictError');
 const ServerError = require('../errors/ServerError');
 const ValidationError = require('../errors/ValidationError');
 
-// Контроллер для создания пользователя
 const createUser = (req, res, next) => {
   const {
     email,
@@ -18,36 +16,33 @@ const createUser = (req, res, next) => {
     about,
     avatar,
   } = req.body;
-  try {
-    bcrypt.hash(password, 10)
-      .then((hashedPassword) => User.create({
-        email,
-        password: hashedPassword,
-        name,
-        about,
-        avatar,
-      }))
-      .then((user) => {
-        res.status(201).send({
-          _id: user._id,
-          email: user.email,
-          name: user.name,
-          about: user.about,
-          avatar: user.avatar,
-        });
-      })
-      .catch((err) => {
-        if (err.code === 11000) {
-          next(new ConflictError('User with this email already exists'));
-        } else if (err.name === 'ValidationError') {
-          next(new BadRequestError('Invalid user data'));
-        } else {
-          next(new ServerError(err.message || 'Something went wrong'));
-        }
+
+  bcrypt.hash(password, 10)
+    .then((hashedPassword) => User.create({
+      email,
+      password: hashedPassword,
+      name,
+      about,
+      avatar,
+    }))
+    .then((user) => {
+      res.status(201).send({
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
       });
-  } catch (err) {
-    next(new ServerError(err.message || 'Something went wrong'));
-  }
+    })
+    .catch((err) => {
+      if (err.code === 11000) {
+        next(new ConflictError('User with this email already exists'));
+      } else if (err.name === 'ValidationError') {
+        next(new BadRequestError('Invalid user data'));
+      } else {
+        next(new ServerError(err.message || 'Something went wrong'));
+      }
+    });
 };
 
 const login = (req, res, next) => {
@@ -65,13 +60,12 @@ const login = (req, res, next) => {
           const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
             expiresIn: '7d',
           });
-          return res.status(200).send({ message: 'Авторизация прошла успешно', token });
+          return res.send({ message: 'Авторизация прошла успешно', token });
         });
     })
     .catch(next);
 };
 
-// Контроллер для получения всех пользователей
 const getUsers = (req, res, next) => {
   User.find().select('-password')
     .then((users) => {
@@ -82,7 +76,6 @@ const getUsers = (req, res, next) => {
     });
 };
 
-// Контроллер для получения пользователя по _id
 const getUserById = (req, res, next) => {
   const { userId } = req.params;
   User.findById(userId).select('-password')
@@ -97,6 +90,7 @@ const getUserById = (req, res, next) => {
     });
 };
 
+// eslint-disable-next-line consistent-return
 const updateProfile = (req, res, next) => {
   const { name, about } = req.body;
   const userId = req.user._id;
@@ -112,7 +106,7 @@ const updateProfile = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(res.status(BadRequestError).send({ message: 'Запрашиваемый пользователь не найден' }));
+        next(new BadRequestError('Invalid user data'));
       } else {
         next(err);
       }
