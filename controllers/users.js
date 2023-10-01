@@ -77,7 +77,11 @@ const getUserById = (req, res, next) => {
       return res.status(200).send(user);
     })
     .catch((error) => {
-      next(new ServerError(error.message || 'Something went wrong'));
+      if (error.statusCode) {
+        res.status(error.statusCode).send({ message: error.message });
+      } else {
+        next(new ServerError(error.message || 'Something went wrong'));
+      }
     });
 };
 

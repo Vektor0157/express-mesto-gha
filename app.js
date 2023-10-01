@@ -20,8 +20,8 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
 });
 
 app.use('/', express.json());
-app.use('/users', auth, usersRouter);
-app.use('/cards', auth, cardsRouter);
+app.use('/users', usersRouter);
+app.use('/cards', cardsRouter);
 
 app.post('/signin', celebrate({
   body: Joi.object().keys({
@@ -39,8 +39,8 @@ app.post('/signup', celebrate({
     password: Joi.string().required().min(8),
   }),
 }), createUser);
-app.use('*', auth, (req, res) => {
-  res.status(NotFoundError).send({ message: 'Not Found' });
+app.use('*', (req, res, next) => {
+  next(new NotFoundError('Not Found'));
 });
 app.use(errors());
 app.use(ServerError);
