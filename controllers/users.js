@@ -8,35 +8,37 @@ const ConflictError = require('../errors/ConflictError');
 
 const createUser = (req, res, next) => {
   const {
-    email,
-    password,
     name,
     about,
     avatar,
+    email,
+    password,
   } = req.body;
 
   bcrypt.hash(password, 10)
-    .then((hashedPassword) => User.create({
-      email,
-      password: hashedPassword,
+    .then((hash) => User.create({
       name,
       about,
       avatar,
+      email,
+      password: hash,
     }))
     .then((user) => {
-      res.status(201).send({
-        _id: user._id,
-        email: user.email,
-        name: user.name,
-        about: user.about,
-        avatar: user.avatar,
+      res.send({
+        data: {
+          name: user.name,
+          email: user.email,
+          about: user.about,
+          avatar: user.avatar,
+          _id: user._id,
+        },
       });
     })
     .catch((err) => {
       if (err.code === 11000) {
-        next(new ConflictError('User with this email already exists'));
+        next(new ConflictError('Пользователь с данным email уже существует'));
       } else if (err.name === 'ValidationError') {
-        next(new BadRequestError('Invalid user data'));
+        next(new BadRequestError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
       } else {
         next(err);
       }
@@ -46,7 +48,7 @@ const createUser = (req, res, next) => {
 const login = (req, res, next) => {
   const { email, password } = req.body;
 
-  User.findUserByCredentials(email, password)
+  return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
         expiresIn: '7d',
@@ -57,25 +59,25 @@ const login = (req, res, next) => {
 };
 
 const getUsers = (req, res, next) => {
-  User.find().select('-password')
+  User.find({})
     .then((users) => {
-      res.status(200).send(users);
+      res.send({ users });
     })
     .catch(next);
 };
 
 const getUserById = (req, res, next) => {
   const { userId } = req.params;
-  User.findById(userId).select('-password')
+  User.findById(userId)
     .then((user) => {
-      if (!user) {
+      if (user) {
+        res.send({ user });
+      } else {
         throw new NotFoundError('User not found');
       }
-      return res.status(200).send(user);
     })
     .catch(next);
 };
-
 // eslint-disable-next-line consistent-return
 const updateProfile = (req, res, next) => {
   const { name, about } = req.body;
@@ -100,13 +102,9 @@ const updateProfile = (req, res, next) => {
 };
 
 const getCurrentUser = (req, res, next) => {
-  const userId = req.user._id;
-  User.findById(userId).select('-password')
+  User.findById(req.user)
     .then((user) => {
-      if (!user) {
-        return res.status(NotFoundError).send({ message: 'Пользователь не найден' });
-      }
-      return res.status(200).send(user);
+      res.send({ user });
     })
     .catch(next);
 };

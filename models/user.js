@@ -20,20 +20,14 @@ const userSchema = new mongoose.Schema(
     avatar: {
       type: String,
       default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
-      validate: {
-        validator: (value) => validator.isURL(value, {
-          protocols: ['http', 'https'],
-          require_tld: true,
-          require_protocol: true,
-        }),
-      },
+      validate: (value) => validator.isURL(value),
     },
     email: {
       type: String,
       unique: true,
       required: true,
       validate: {
-        validator: validator.isEmail,
+        validator: (email) => validator.isEmail(email),
         message: 'Неверный формат email',
       },
     },
@@ -52,12 +46,12 @@ userSchema.statics.findUserByCredentials = function (email, password) {
   return this.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        throw new ValidationError('Почта и пароль введены неверно');
+        throw new ValidationError('Неправильные почта или пароль');
       }
       return bcrypt.compare(password, user.password)
-        .then((match) => {
-          if (!match) {
-            throw new ValidationError('Почта и пароль введены неверно');
+        .then((matched) => {
+          if (!matched) {
+            throw new ValidationError('Неправильные почта или пароль');
           }
           return user;
         });

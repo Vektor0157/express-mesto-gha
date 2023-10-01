@@ -5,7 +5,7 @@ const { celebrate, errors, Joi } = require('celebrate');
 
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
-
+const auth = require('./middlewares/auth');
 const ServerError = require('./errors/ServerError');
 const NotFoundError = require('./errors/NotFoundError');
 const { createUser, login } = require('./controllers/users');
@@ -19,8 +19,8 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
 });
 
 app.use('/', express.json());
-app.use('/users', usersRouter);
-app.use('/cards', cardsRouter);
+app.use('/users', auth, usersRouter);
+app.use('/cards', auth, cardsRouter);
 
 app.post('/signin', celebrate({
   body: Joi.object().keys({
@@ -38,8 +38,8 @@ app.post('/signup', celebrate({
     password: Joi.string().required().min(8),
   }),
 }), createUser);
-app.use('*', (req, res, next) => {
-  next(new NotFoundError('Not Found'));
+app.use('*', auth, () => {
+  throw new NotFoundError('Not Found');
 });
 app.use(errors());
 app.use(ServerError);
