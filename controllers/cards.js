@@ -15,14 +15,9 @@ const getCards = (req, res, next) => {
 // Обработчик для POST /cards
 const createCard = (req, res, next) => {
   const { name, link } = req.body;
-  const owner = req.user._id;
-  Card.create({ name, link, owner })
-    .then((card) => {
-      if (!card) {
-        return next(new NotFoundError('Card not found'));
-      }
-      return res.status(201).send({ data: card._id });
-    })
+
+  Card.create({ name, link, owner: req.user._id })
+    .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные при создании карты.'));
@@ -33,23 +28,19 @@ const createCard = (req, res, next) => {
 };
 // Обработчик для DELETE /cards/:cardId
 const deleteCard = (req, res, next) => {
-  const { cardId } = req.params;
-  const userId = req.user._id;
-  Card.findById(cardId)
+  Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
-        throw new NotFoundError('Card not found');
+        throw new NotFoundError('Карточка по указанному _id не найдена.');
       }
-      if (!card.owner.equals(userId)) {
-        throw new ForbiddenError('Невозможно удалить чужую карточку');
+      if (!card.owner.equals(req.user._id)) {
+        throw new ForbiddenError('Невозможно удалить карту с другим _id пользователя.');
       }
-      return Card.findByIdAndRemove(cardId)
-        .then((deletedCard) => {
-          if (!deletedCard) {
-            return next(new NotFoundError('Card not found')); // Handle if the card is not found during the deletion
-          }
-          return res.status(200).send(deletedCard);
-        });
+      card.deleteOne()
+        .then(() => {
+          res.status(200).send({ message: 'Карточка успешно удалена' });
+        })
+        .catch(next);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -62,35 +53,34 @@ const deleteCard = (req, res, next) => {
 
 // Обработчик для PUT /cards/:cardId/likes
 const likeCard = (req, res, next) => {
-  const { cardId } = req.params;
-  const userId = req.user._id;
-  return Card.findByIdAndUpdate(
-    cardId,
-    { $addToSet: { likes: userId } },
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $addToSet: { likes: req.user._id } },
     { new: true },
   )
     .then((card) => {
-      if (!card) {
-        return next(new NotFoundError('Card not found'));
+      if (card) {
+        res.send({ data: card });
+      } else {
+        throw new NotFoundError('Карточка с указанным _id не найдена');
       }
-      return res.status(200).send(card);
     })
     .catch(next);
 };
 
 // Обработчик для DELETE /cards/:cardId/likes
 const dislikeCard = (req, res, next) => {
-  const { cardId, userId } = req.params;
   Card.findByIdAndUpdate(
-    cardId,
-    { $pull: { likes: userId } },
+    req.params.cardId,
+    { $pull: { likes: req.user._id } },
     { new: true },
   )
     .then((card) => {
-      if (!card) {
-        return next(new NotFoundError('Card not found'));
+      if (card) {
+        res.send({ data: card });
+      } else {
+        throw new NotFoundError('Карточка с указанным _id не найдена');
       }
-      return res.status(200).send(card);
     })
     .catch(next);
 };
