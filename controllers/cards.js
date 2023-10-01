@@ -3,23 +3,10 @@ const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
 const ForbiddenError = require('../errors/ForbiddenError');
 
-// Обработчик для GET /cards
-const getCards = (req, res, next) => {
-  Card.find({})
-    .then((cards) => {
-      if (cards.length === 0) {
-        throw new NotFoundError('No cards found');
-      }
-      res.send({ cards });
-    })
-    .catch(next);
-};
-
 // Обработчик для POST /cards
 const createCard = (req, res, next) => {
   const { name, link } = req.body;
-  const owner = req.user._id;
-  Card.create({ name, link, owner })
+  Card.create({ name, link, owner: req.user._id })
     .then((card) => res.status(201).send({ card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -28,6 +15,14 @@ const createCard = (req, res, next) => {
         next(err);
       }
     });
+};
+// Обработчик для GET /cards
+const getCards = (req, res, next) => {
+  Card.find({})
+    .then((cards) => {
+      res.send({ cards });
+    })
+    .catch(next);
 };
 // Обработчик для DELETE /cards/:cardId
 const deleteCard = (req, res, next) => {
@@ -41,7 +36,7 @@ const deleteCard = (req, res, next) => {
       }
       card.deleteOne()
         .then(() => {
-          res.status(200).send({ message: 'Карточка успешно удалена' });
+          res.status(200).send({ message: 'Карточка удалена' });
         })
         .catch(next);
     })
@@ -53,6 +48,7 @@ const deleteCard = (req, res, next) => {
       }
     });
 };
+
 // Обработчик для PUT /cards/:cardId/likes
 const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
@@ -61,10 +57,11 @@ const likeCard = (req, res, next) => {
     { new: true },
   )
     .then((card) => {
-      if (!card) {
+      if (card) {
+        res.send({ data: card });
+      } else {
         throw new NotFoundError('Карточка с указанным _id не найдена');
       }
-      res.send({ data: card });
     })
     .catch(next);
 };
@@ -77,10 +74,11 @@ const dislikeCard = (req, res, next) => {
     { new: true },
   )
     .then((card) => {
-      if (!card) {
+      if (card) {
+        res.send({ data: card });
+      } else {
         throw new NotFoundError('Карточка с указанным _id не найдена');
       }
-      res.send({ data: card });
     })
     .catch(next);
 };

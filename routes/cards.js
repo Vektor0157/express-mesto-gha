@@ -5,8 +5,8 @@ const router = express.Router();
 const { celebrate, Joi } = require('celebrate');
 
 const {
-  getCards,
   createCard,
+  getCards,
   deleteCard,
   likeCard,
   dislikeCard,
