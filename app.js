@@ -3,7 +3,6 @@ const express = require('express');
 const mongoose = require('mongoose');
 const { celebrate, errors, Joi } = require('celebrate');
 
-const auth = require('./middlewares/auth');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
 

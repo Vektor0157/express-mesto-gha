@@ -17,16 +17,21 @@ const createCard = (req, res, next) => {
   const { name, link } = req.body;
   const owner = req.user._id;
   Card.create({ name, link, owner })
-    .then((card) => res.send({ data: card }))
+    .then((card) => {
+      if (!card) {
+        return next(new NotFoundError('Card not found'));
+      }
+      return res.status(201).send({ data: card });
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные при создании карты.'));
       } else {
-        next(err);
+        // Handle unexpected errors with a 500 status code
+        next(new Error('Internal Server Error'));
       }
     });
 };
-
 // Обработчик для DELETE /cards/:cardId
 const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
@@ -41,7 +46,10 @@ const deleteCard = (req, res, next) => {
       }
       return Card.findByIdAndRemove(cardId)
         .then((deletedCard) => {
-          res.send(deletedCard);
+          if (!deletedCard) {
+            return next(new NotFoundError('Card not found')); // Handle if the card is not found during the deletion
+          }
+          return res.status(200).send(deletedCard);
         });
     })
     .catch((err) => {
@@ -57,16 +65,23 @@ const deleteCard = (req, res, next) => {
 const likeCard = (req, res, next) => {
   const { cardId } = req.params;
   const userId = req.user._id;
-  Card.findByIdAndUpdate(
-    cardId,
-    { $addToSet: { likes: userId } },
-    { new: true },
-  )
+  Card.findById(cardId)
     .then((card) => {
       if (!card) {
         return next(new NotFoundError('Card not found'));
       }
-      return res.send(card);
+      return Card.findByIdAndUpdate(
+        cardId,
+        { $addToSet: { likes: userId } },
+        { new: true },
+      )
+        .then((updatedCard) => {
+          if (!updatedCard) {
+            return next(new NotFoundError('Card not found')); // Handle if the card is not found during the update
+          }
+          return res.status(200).send(updatedCard);
+        })
+        .catch(next);
     })
     .catch(next);
 };
@@ -83,7 +98,7 @@ const dislikeCard = (req, res, next) => {
       if (!card) {
         return next(new NotFoundError('Card not found'));
       }
-      return res.send(card);
+      return res.status(200).send(card);
     })
     .catch(next);
 };
