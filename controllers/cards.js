@@ -7,6 +7,9 @@ const ForbiddenError = require('../errors/ForbiddenError');
 const getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => {
+      if (cards.length === 0) {
+        throw new NotFoundError('No cards found');
+      }
       res.send({ cards });
     })
     .catch(next);
@@ -15,9 +18,9 @@ const getCards = (req, res, next) => {
 // Обработчик для POST /cards
 const createCard = (req, res, next) => {
   const { name, link } = req.body;
-
-  Card.create({ name, link, owner: req.user._id })
-    .then((card) => res.send({ data: card }))
+  const owner = req.user._id;
+  Card.create({ name, link, owner })
+    .then((card) => res.status(201).send({ card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные при создании карты.'));
@@ -34,7 +37,7 @@ const deleteCard = (req, res, next) => {
         throw new NotFoundError('Карточка по указанному _id не найдена.');
       }
       if (!card.owner.equals(req.user._id)) {
-        throw new ForbiddenError('Невозможно удалить карту с другим _id пользователя.');
+        throw new ForbiddenError('Невозможно удалить чужую карточку.');
       }
       card.deleteOne()
         .then(() => {
@@ -50,7 +53,6 @@ const deleteCard = (req, res, next) => {
       }
     });
 };
-
 // Обработчик для PUT /cards/:cardId/likes
 const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
@@ -59,11 +61,10 @@ const likeCard = (req, res, next) => {
     { new: true },
   )
     .then((card) => {
-      if (card) {
-        res.send({ data: card });
-      } else {
+      if (!card) {
         throw new NotFoundError('Карточка с указанным _id не найдена');
       }
+      res.send({ data: card });
     })
     .catch(next);
 };
@@ -76,11 +77,10 @@ const dislikeCard = (req, res, next) => {
     { new: true },
   )
     .then((card) => {
-      if (card) {
-        res.send({ data: card });
-      } else {
+      if (!card) {
         throw new NotFoundError('Карточка с указанным _id не найдена');
       }
+      res.send({ data: card });
     })
     .catch(next);
 };

@@ -2,10 +2,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const { celebrate, errors, Joi } = require('celebrate');
-
+const auth = require('./middlewares/auth');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
-const auth = require('./middlewares/auth');
+
 const ServerError = require('./errors/ServerError');
 const NotFoundError = require('./errors/NotFoundError');
 const { createUser, login } = require('./controllers/users');
