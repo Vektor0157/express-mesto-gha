@@ -55,12 +55,12 @@ const login = (req, res, next) => {
   return User.findOne({ email })
     .then((user) => {
       if (!user) {
-        return res.status(BadRequestError).send({ message: 'Неверный email или пароль' });
+        throw new ValidationError('Неверный email или пароль');
       }
       bcrypt.compare(password, user.password)
         .then((isValidPassword) => {
           if (!isValidPassword) {
-            return res.status(ValidationError).send({ message: 'Неверный email или пароль' });
+            throw new ValidationError('Неверный email или пароль');
           }
           const token = jwt.sign({ _id: user._id }, 'super-strong-secret', {
             expiresIn: '7d',
