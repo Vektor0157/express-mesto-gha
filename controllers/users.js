@@ -6,7 +6,6 @@ const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
 const ConflictError = require('../errors/ConflictError');
 const ServerError = require('../errors/ServerError');
-const ValidationError = require('../errors/ValidationError');
 
 const createUser = (req, res, next) => {
   const {
@@ -73,7 +72,7 @@ const getUserById = (req, res, next) => {
   User.findById(userId).select('-password')
     .then((user) => {
       if (!user) {
-        return res.status(NotFoundError).send({ message: 'User not found' });
+        throw new NotFoundError('User not found');
       }
       return res.status(200).send(user);
     })
