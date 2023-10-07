@@ -8,7 +8,7 @@ const createCard = (req, res, next) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
     .then((card) => {
-      res.status(201).send({ card: card._id });
+      res.status(201).send(card._id);
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -22,7 +22,7 @@ const createCard = (req, res, next) => {
 const getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => {
-      res.status(200).send({ cards });
+      res.status(200).send(cards);
     })
     .catch(next);
 };
@@ -33,7 +33,7 @@ const deleteCard = (req, res, next) => {
     next(new BadRequestError('Некорректный формат параметра cardId.'));
     return;
   }
-  Card.findById(cardId)
+  Card.findByIdAndRemove(cardId)
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточка по указанному _id не найдена.');
@@ -64,7 +64,7 @@ const likeCard = (req, res, next) => {
   )
     .then((card) => {
       if (card) {
-        res.status(200).send({ data: card });
+        res.status(200).send(card);
       } else {
         throw new NotFoundError('Карточка с указанным _id не найдена');
       }
@@ -86,7 +86,7 @@ const dislikeCard = (req, res, next) => {
   )
     .then((card) => {
       if (card) {
-        res.status(200).send({ data: card });
+        res.status(200).send(card);
       } else {
         throw new NotFoundError('Карточка с указанным _id не найдена');
       }
