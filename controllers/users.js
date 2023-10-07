@@ -82,9 +82,6 @@ const getUserById = (req, res, next) => {
 const updateProfile = (req, res, next) => {
   const { name, about } = req.body;
   const userId = req.user._id;
-  if (name.length < 2 || name.length > 30) {
-    return next(new BadRequestError('Имя должно содержать от 2 до 30 символов'));
-  }
   User.findByIdAndUpdate(userId, { name, about }, { new: true })
     .then((user) => {
       if (!user) {
